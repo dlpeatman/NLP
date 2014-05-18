@@ -13,14 +13,14 @@ Returns a default dictionary given a grammar
 For example, ('S','A','R') in input turns into a key value pair with 
 'S' as key and a tuple of ('A','R') as value
 """
-def processGrammar(PL,P):
-	# lexical productions
-	d = defaultdict(list)
-	for tup in PL:
-		d[tup[0]].append(tup[1:])
-	for tup in P:
-		d[tup[0]].append(tup[1:])
-	return d
+def processGrammar(G):
+    # lexical productions
+    d = defaultdict(list)
+    for tup in G[0]:
+        d[tup[0]].append(tup[1:])
+    for tup in G[1]:
+        d[tup[0]].append(tup[1:])
+    return d
 
 
 def generateSentence(grammar, key):
