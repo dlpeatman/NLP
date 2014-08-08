@@ -1,0 +1,49 @@
+start:
+S
+lexical:
+A,red
+D,a
+D,the
+D,this
+D,your
+DP,Bill
+DP,it
+DP,she
+DP,tomorrow
+N,coat
+N,desk
+N,girl
+N,picture
+NP,one
+P,before
+P,in
+P,of
+P,on
+PP,then
+PP,there
+T,will
+V,put
+nonlexical:
+DP,D,N
+DP,D,NP
+N,A,N
+NP,A,NP
+NP,N,PP
+PP,P,DP
+S,DP,TP
+TP,T,VP
+V2P,DP,PP
+VP,V,V2P
+VP,VP,PP
+samples:
+she will put it there then
+she will put this one there then
+she will put it on this one then
+this one will put it there then
+this girl in the red coat will put a picture of Bill on your desk before tomorrow
+she will put a picture of Bill on your desk before tomorrow
+this girl in the red coat will put it on your desk before tomorrow
+this girl in the red coat will put a picture of Bill there before tomorrow
+this one will put a picture of Bill on your desk before tomorrow
+this girl in the red coat will put a picture of Bill on it before tomorrow
+this girl in the red one will put a picture of Bill on your desk before tomorrow

@@ -1,0 +1,13 @@
+start:
+S
+lexical:
+A,0
+B,1
+nonlexical:
+S,A,B
+S,A,R
+R,S,B
+samples:
+0 1
+0 0 1 1
+0 0 0 1 1 1

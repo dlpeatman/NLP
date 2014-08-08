@@ -1,0 +1,45 @@
+C version:
+Accepted by target grammar: a b a
+Processing input: a b a 
+0 seconds
+
+0.001 seconds
+
+CBFG Grammar:
+  Lexical rules:
+    (,b a),(a b,)  ->  a
+    (a,a)  ->  b
+  Nonlexical rules:
+    (,a)  ->  (,b a),(a b,)     (a,a)
+    (,)  ->  (,b a),(a b,)     (a,)
+    (,)  ->  (,a)     (,b a),(a b,)
+    (a,)  ->  (a,a)     (,b a),(a b,)
+
+6 rules in grammar
+
+Accepted by leaner's grammar: a b a
+
+19 queries to oracle
+
+
+
+Python version:
+checking sample with target grammar...
+Accepted by target grammar : a b a
+processing input: ['a', 'b', 'a']
+0.0 seconds
+
+0.0 seconds
+
+	(,b a),(a b,)  ->  a
+	(a,a)  ->  b
+	(,a)  ->  (,b a),(a b,)     (a,a)
+	(,)  ->  (,b a),(a b,)     (a,)
+	(,)  ->  (,a)     (,b a),(a b,)
+	(a,)  ->  (a,a)     (,b a),(a b,)
+
+6 rules in grammar
+
+Accepted by learner's grammar : a b a
+
+18 queries to oracle

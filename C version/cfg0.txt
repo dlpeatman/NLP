@@ -1,0 +1,10 @@
+start:
+S
+lexical:
+A,a
+B,b
+nonlexical:
+S,A,BA
+BA,B,A
+samples:
+a b a
