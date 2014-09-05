@@ -1,0 +1,12 @@
+#P0
+#P1
+#P2
+	S -> A,BA
+	BA -> B,A
+# PL
+	A -> a
+	B -> b
+# Starts
+	S
+# Samples
+	a b a

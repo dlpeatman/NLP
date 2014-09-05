@@ -1,0 +1,15 @@
+# P0
+# P1
+# P2
+	S -> A,B
+	S -> A,R
+	R -> S,B
+# PL
+	A -> 0
+	B -> 1 
+# Starts
+	S
+# Samples
+	0 1
+	0 0 1 1
+	0 0 0 1 1 1
