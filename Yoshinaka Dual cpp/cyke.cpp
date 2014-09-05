@@ -169,6 +169,7 @@ bool accepts(const vector<string> w, const CFG &G, unordered_map<string, unorder
 
 	// Matrix is dynamically allocated 2D array of sets of strings
 	unsigned int n = w.size();
+	if (n == 0) return false;
 	unordered_set<string>** matrix = new unordered_set<string>*[n];
 	for (unsigned int i = 0; i < n; ++i)
 		matrix[i] = new unordered_set<string>[n];

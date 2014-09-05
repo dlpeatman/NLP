@@ -210,7 +210,7 @@ CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 
 	for (auto Cset : Vf){ // Cset is a set of contexts
 		// newP0C(Cset, H.sp0c, G);
-		// newP2C(Cset, Vf, K, H.sp2c, G);
+		newP2C(Cset, Vf, K, H.sp2c, G);
 		// newPLC(Cset, H.splc, G, sigma);
 	}
 	// newP1C(H.sp0c, H.sp1c, H.sp2c, H.splc, G);
