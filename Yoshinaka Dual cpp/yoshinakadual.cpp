@@ -37,8 +37,8 @@ void addSub(vector<vector<string>> &SubD, const vector<string> w){
 
 // Just like python vesion
 void addCon(contextSet &ConD, const vector<string> w){
-	for (unsigned int i = 0; i < w.size(); i++){
-		for (unsigned int j = i + 1; j < w.size() + 1; j++){
+	for (unsigned int i = 0; i <= w.size(); i++){
+		for (unsigned int j = i; j <= w.size() + 1; j++){
 			context c;
 			for (unsigned int k = 0; k < i; k++)
 				c.lhs.push_back(w[k]);
@@ -62,7 +62,7 @@ vector<vector<string>> CK(const contextSet C, const vector<vector<string>> K, co
 				lur.push_back(s);
 			for (auto s : c.rhs)
 				lur.push_back(s);
-			if (!accepts(lur, G, G.chains)){
+			if (!accepts(lur, G, G.chains, historyG)){
 				b = false;
 				break;
 			}
@@ -81,7 +81,7 @@ void newP0C(const contextSet C, P0CSet &sp0c, const CFG &G){
 			lur.push_back(s);
 		for (auto s : c.rhs)
 			lur.push_back(s);
-		if (!accepts(lur, G, G.chains))
+		if (!accepts(lur, G, G.chains, historyG))
 			return;
 	}
 	P0C p0c(C);
@@ -107,7 +107,7 @@ void newP2C(const contextSet C, const unordered_set<contextSet> Vf,
 							lur.push_back(s);
 						for (auto s : c.rhs)
 							lur.push_back(s);
-						if (!accepts(lur, G, G.chains)){
+						if (!accepts(lur, G, G.chains, historyG)){
 							b = false;
 							break;
 						}
@@ -136,7 +136,7 @@ void newPLC(const contextSet C, PLCSet &splc, const CFG &G, unordered_set<string
 			lur.push_back(x);
 			for (auto s : c.rhs)
 				lur.push_back(s);
-			if (!accepts(lur, G, G.chains)){
+			if (!accepts(lur, G, G.chains, historyG)){
 				b = false;
 				break;
 			}
@@ -155,12 +155,6 @@ void newP1C(const P0CSet &sp0c, P1CSet &sp1c, const P2CSet &sp2c,
 	contextSet cs;
 	cs.set.emplace(c);
 	for (auto r : sp0c.set){ // For each P0C rule
-		if (r.lhs.set.find(c) != r.lhs.set.end()){
-			P1C p1c(cs, r.lhs);
-			sp1c.set.emplace(p1c);
-		}
-	}
-	for (auto r : sp1c.set){ // For each P1C rule
 		if (r.lhs.set.find(c) != r.lhs.set.end()){
 			P1C p1c(cs, r.lhs);
 			sp1c.set.emplace(p1c);
@@ -207,26 +201,30 @@ CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 {
 	CFGC H;
 	unordered_set<contextSet> Vf = powerSet(F,f);
-
+	//for (auto cs : Vf)
+	//	printContextSet(cs.set);
 	for (auto Cset : Vf){ // Cset is a set of contexts
-		// newP0C(Cset, H.sp0c, G);
-		newP2C(Cset, Vf, K, H.sp2c, G);
-		// newPLC(Cset, H.splc, G, sigma);
+		if (Cset.set.size() > 0){
+			newP0C(Cset, H.sp0c, G);
+			newP2C(Cset, Vf, K, H.sp2c, G);
+			newPLC(Cset, H.splc, G, sigma);
+		}
 	}
-	// newP1C(H.sp0c, H.sp1c, H.sp2c, H.splc, G);
-	printP0CSet(H.sp0c);
-	printP1CSet(H.sp1c);
-	printP2CSet(H.sp2c);
-	printPLCSet(H.splc);
+	newP1C(H.sp0c, H.sp1c, H.sp2c, H.splc, G);
+	// printCFGC(H);
 	return H;
 }
 
 
-bool notInLhat(vector<vector<string>> D, CFGC &Ghat){
-	for (unsigned int i = 0; i < D.size(); i++){
-		if (accepts(D[i], Ghat))
+bool notInLhat(vector<vector<string>> D, CFG &Hprime){
+	for (auto s : D){
+		// printCFG(Hprime);
+		if (accepts(s, Hprime, historyH)){
+			cout << "Not in Lhat" << endl;
 			return false;
+		}
 	}
+	cout << "In Lhat" << endl;
 	return true;
 }
 
@@ -245,6 +243,7 @@ CFGC fFCP(const CFG &target, const int f){
 		sigma.emplace(pl.rhs);
 
 	CFGC Hhat = Hf(F, K, target, sigma, f);
+	CFG Hprime;
 
 	for (unsigned int i = 0; i < target.samples.size(); i++){
 		vector<string> w = target.samples[i];
@@ -253,17 +252,22 @@ CFGC fFCP(const CFG &target, const int f){
 		D.push_back(w);
 		// printD(D);
 		addCon(ConD, w);
-		// printContextSet(ConD);
+		// printContextSet(ConD.set);
 		addSub(SubD, w);
 		// printSubstringVector(SubD);
 		K = SubD;
-		if (true){ // (notInLhat(D, Hhat)){
+		if (notInLhat(D, Hprime)){
 			for (auto c : ConD.set)
 				F.set.emplace(c);
 		}
 		Hhat = Hf(F, K, target, sigma, f);
+		// printCFGC(Hhat);
+		Hprime = convertCFGC(Hhat);
+		// printCFG(Hprime);
 	}
-
+	cout << "Done. Checking learner grammar..." << endl;
+	runtime(t0);
+	checkLearner(Hprime, target.samples);
 	runtime(t0);
 
 	return Hhat;
@@ -274,4 +278,7 @@ int main(int argc, char* argv[]){
 	printCFG(target);
 	checkSamples(target);
 	CFGC Hhat = fFCP(target, 1);
+	cout << endl << "Learner's grammar:" << endl;
+	// printCFGC(Hhat);
+	printCFGCRules(Hhat);
 }

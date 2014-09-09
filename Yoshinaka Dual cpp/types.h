@@ -18,6 +18,7 @@
 #define _TYPES_
 
 #include <fstream>
+#include <iomanip>
 #include <string>
 #include <time.h>
 #include <unordered_map>
@@ -30,28 +31,40 @@ using namespace::std;
 ////////////////////////////////////////////////////////////////
 
 // P0 CFG Rule
-typedef struct{
+struct P0{
+	P0() {}
+	P0(string s)
+		: lhs(s) {}
 	string lhs;
-} P0;
+};
 
 // P1 CFG Rule
-typedef struct{
+struct P1{
+	P1() {}
+	P1(string l, string r)
+		: lhs(l), rhs(r) {}
 	string lhs;
 	string rhs;
-} P1;
+};
 
 // P2 CFG Rule
-typedef struct{
+struct P2{
+	P2() {}
+	P2(string l, string r1, string r2)
+		: lhs(l), rhs1(r1), rhs2(r2) {}
 	string lhs;
 	string rhs1;
 	string rhs2;
-} P2;
+};
 
 // PL CFG Rule
-typedef struct{
+struct PL{
+	PL() {}
+	PL(string l, string r)
+		: lhs(l), rhs(r) {}
 	string lhs;
 	string rhs;
-} PL;
+};
 
 // A CFG
 struct CFG{
@@ -99,6 +112,9 @@ namespace std {
 
 // context unordered_set (link struct)
 struct contextSet{
+	contextSet(){
+		set = unordered_set<context>();
+	}
 	unordered_set<context> set;
 	bool operator==(const contextSet &other) const {
 		return set == other.set;
@@ -137,14 +153,10 @@ namespace std {
 	template <>	struct hash <P0C>
 	{
 		size_t operator()(const P0C &p0c) const {
-			string lhs, rhs;
-			for (auto c : p0c.lhs.set){
-				for (auto s : c.lhs)
-					lhs += s;
-				for (auto s : c.rhs)
-					rhs += s;
-			}
-			return (hash<string>()(lhs) ^ (hash<string>()(rhs)));
+			string lhs;
+			if (p0c.lhs.set.begin()->lhs.size() > 0)
+				lhs = p0c.lhs.set.begin()->lhs[0];
+			return (hash<string>()(lhs) ^ p0c.lhs.set.begin()->lhs.size());
 		}
 	};
 }
@@ -174,19 +186,11 @@ namespace std {
 	{
 		size_t operator()(const P1C &p1c) const {
 			string lhs, rhs;
-			for (auto c : p1c.lhs.set){
-				for (auto s : c.lhs)
-					lhs += s;
-				for (auto s : c.rhs)
-					lhs += s;
-			}
-			for (auto c : p1c.rhs.set){
-				for (auto s : c.lhs)
-					rhs += s;
-				for (auto s : c.rhs)
-					rhs += s;
-			}
-			return (hash<string>()(lhs) ^ (hash<string>()(rhs)));
+			if (p1c.lhs.set.begin()->lhs.size() > 0)
+				lhs = p1c.lhs.set.begin()->lhs[0];
+			if (p1c.rhs.set.begin()->lhs.size() > 0)
+				rhs = p1c.rhs.set.begin()->lhs[0];
+			return (hash<string>()(lhs) ^ (hash<string>()(rhs)) ^ p1c.lhs.set.begin()->lhs.size());
 		}
 	};
 }
@@ -216,20 +220,14 @@ namespace std {
 	template <>	struct hash <P2C>
 	{
 		size_t operator()(const P2C &p2c) const {
-			string lhs, rhs;
-			for (auto c : p2c.lhs.set){
-				for (auto s : c.lhs)
-					lhs += s;
-				for (auto s : c.rhs)
-					lhs += s;
-			}
-			for (auto c : p2c.rhs1.set){
-				for (auto s : c.lhs)
-					rhs += s;
-				for (auto s : c.rhs)
-					rhs += s;
-			}
-			return (hash<string>()(lhs) ^ (hash<string>()(rhs)));
+			string lhs, rhs1, rhs2;
+			if (p2c.lhs.set.begin()->lhs.size() > 0)
+				lhs = p2c.lhs.set.begin()->lhs[0];
+			if (p2c.rhs1.set.begin()->lhs.size() > 0)
+				rhs1 = p2c.rhs1.set.begin()->lhs[0];
+			if (p2c.rhs2.set.begin()->lhs.size() > 0)
+				rhs2 = p2c.rhs2.set.begin()->lhs[0];
+			return (hash<string>()(lhs) ^ ((hash<string>()(rhs1) << 1) ^ (hash<string>()(rhs2)) << 1));
 		}
 	};
 }
@@ -259,13 +257,9 @@ namespace std {
 	{
 		size_t operator()(const PLC &plc) const {
 			string lhs;
-			for (auto c : plc.lhs.set){
-				for (auto s : c.lhs)
-					lhs += s;
-				for (auto s : c.rhs)
-					lhs += s;
-			}
-			return (hash<string>()(lhs) ^ (hash<string>()(plc.rhs)));
+			if (plc.lhs.set.begin()->lhs.size() > 0)
+				lhs = plc.lhs.set.begin()->lhs[0];
+			return (hash<string>()(lhs) ^ (hash<string>()(plc.rhs) << 1));
 		}
 	};
 }
@@ -332,7 +326,11 @@ bool subset(vector<context> c1, vector<vector<context>> cl);
 // Takes the input file and creates an CFG object for the target grammar
 CFG extractCFG(char* file);
 
+// prints the current runtime
 void runtime(clock_t t0);
+
+// Converts a CFG with contextual rules into a CFG with short strings
+CFG convertCFGC(const CFGC &H);
 
 ////////////////////////////////////////////////////////////////
 /* Printing functions                                         */
@@ -379,5 +377,11 @@ void printSubstringVector(const vector<vector<string>> &s);
 
 // Print a CFG
 void printCFG(const CFG &G);
+
+// Print a CFGC
+void printCFGC(const CFGC &H);
+
+// Print # of rules in CGFC
+void printCFGCRules(const CFGC &H);
 
 #endif

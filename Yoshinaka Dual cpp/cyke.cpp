@@ -3,35 +3,26 @@
 * Implements ckye.h
 * David Peatman - Updated 8/30/14
 ****************************************************************/
+#include <iomanip>
 #include <iostream>
 #include <iomanip>
 #include <queue>
 
 #include "cyke.h"
 
-History history;
-History historyC;
+History historyG;
+History historyH;
 
 // Prints the CFG Matrix for debugging purposes
 void printMatrix(unordered_set<string>** matrix, unsigned int size){
 	for (unsigned int j = 0; j < size; j++){
 		for (unsigned int i = 0; i < size; i++){
-			if (j <= i){
-				cout << "matrix[" << i << "][" << j << "]: ";
-				for (auto s : matrix[i][j])
-					cout << s << " ";
-				cout << endl;
-			}
-		}
-	}
-}
-
-// Prints a CGFC Matrix for debugging purposes
-void printMatrix(vector<vector<context>>** matrix, unsigned int size){
-	for (unsigned int i = 0; i <= size; i++){
-		for (unsigned int j = i; j <= size; j++){
-			int x = matrix[i][j].size();
-			cout << x;
+			cout << setw(2) << i << "," << setw(2) << j << ":";
+			cout << setw(5);
+			string temp = "";
+			for (auto s : matrix[i][j])
+				temp += s;
+			cout << temp;
 		}
 		cout << endl;
 	}
@@ -58,7 +49,10 @@ unordered_map<string, bool> buildNullable(const CFG &G){
 		string lhs;
 		string rhs;
 	};
-	unordered_map<string, vector<pair>> occurs2;
+	struct vpair{
+		vector<pair> vec;
+	};
+	unordered_map<string, vpair> occurs2;
 	queue<string> todo;
 
 	for (unsigned int i = 0; i < G.vp1.size(); i++){	// unary rules
@@ -70,10 +64,10 @@ unordered_map<string, bool> buildNullable(const CFG &G){
 		pair AC, AB;
 		AC.lhs = G.vp2[i].lhs;
 		AC.rhs = G.vp2[i].rhs2;
-		occurs2[G.vp2[i].rhs1].push_back(AC);
+		occurs2[G.vp2[i].rhs1].vec.push_back(AC);
 		AB.lhs = G.vp2[i].lhs;
 		AB.rhs = G.vp2[i].rhs1;
-		occurs2[G.vp2[i].rhs2].push_back(AB);
+		occurs2[G.vp2[i].rhs2].vec.push_back(AB);
 	}
 	for (unsigned int i = 0; i < G.vpl.size(); i++)		// lexical rules
 		nullable.emplace(G.vpl[i].lhs, false);
@@ -93,7 +87,7 @@ unordered_map<string, bool> buildNullable(const CFG &G){
 			}
 		}
 		// Using an iterator, go through all elements in occurs2[B]
-		for (auto& it : occurs2[B]){
+		for (auto& it : occurs2[B].vec){
 			if (nullable[it.lhs] == true && nullable[it.lhs] == false){
 				nullable[it.lhs] = true;
 				todo.push(it.lhs);
@@ -156,16 +150,20 @@ void buildMatrix(const vector<string> &w, const CFG &G,
 						&& matrix[h + 1][j].find(p2.rhs2) != matrix[h + 1][j].end())
 						for (auto C : chains[p2.lhs]) // Add every C =>* A from chains
 							matrix[i][j].emplace(C);
+
+	// printMatrix(matrix, n);
 }
 
 // Called with calculated chains/nullable maps
-bool accepts(const vector<string> w, const CFG &G, unordered_map<string, unordered_set<string>> chains){
+bool accepts(const vector<string> &w, const CFG &G, const unordered_map<string, unordered_set<string>> &chains, History &history){
 	// If this call has been made before, return check (previous result)
 	int check = history.checkHistory(w);
 	if (check == 0)
 		return false;
 	else if (check == 1)
 		return true;
+
+	bool success = false;
 
 	// Matrix is dynamically allocated 2D array of sets of strings
 	unsigned int n = w.size();
@@ -181,7 +179,7 @@ bool accepts(const vector<string> w, const CFG &G, unordered_map<string, unorder
 	// printMatrix(matrix, n);
 
 	// Is the top left cell the start symbol?
-	bool success = false;
+	
 	for (auto s : G.starts){	// Test for each start symbol
 		if (matrix[0][n-1].find(s) != matrix[0][n-1].end()){
 			success = true;
@@ -205,68 +203,9 @@ bool accepts(const vector<string> w, const CFG &G, unordered_map<string, unorder
 }
 
 // Called if no chains/nullable maps are pre-calculated
-bool accepts(const vector<string> w, const CFG &G){
-	auto chains = buildChains(G, buildNullable(G));
-	return accepts(w, G, chains);
-}
-
-////////////////////////////////////////////////////////////////
-/* CFGC CYK algorithm overload                                */
-////////////////////////////////////////////////////////////////
-
-void buildMatrix(const vector<string> &w,
-	const vector<P0C> &vp0c,
-	const vector<P1C> &vp1c,
-	const vector<P2C> &vp2c,
-	const vector<PLC> &vplc,
-	vector<contextSet>** matrix,
-	unsigned int n)
-{
-	//for (unsigned int i = 0; i < w.size(); i++){
-	//	for (unsigned int j = 0; j < vplc.size(); j++){
-	//		if (w[i] == vplc[j].rhs)
-	//			matrix[i][i + 1].push_back(vplc[j].lhs);
-	//	}
-	//}
-	//for (unsigned int width = 1; width <= n; width++){
-	//	for (unsigned int start = 0; start <= n - width; start++){
-	//		unsigned int end = start + width;
-	//		for (unsigned int mid = start + 1; mid < end; mid++){
-	//			for (unsigned int i = 0; i < vp2c.size(); i++){
-	//				if (subset(vp2c[i].rhs1, matrix[start][mid])
-	//					&& subset(vp2c[i].rhs2, matrix[mid][end])
-	//					&& !subset(vp2c[i].lhs, matrix[start][end])) // Stops redundacies
-	//					matrix[start][end].push_back(vp2c[i].lhs);
-	//			}
-	//		}
-	//	}
-	//}
-}
-
-bool accepts(const vector<string> w, const CFGC &G)
-{
-	unsigned int n = w.size();
-	vector<contextSet>** matrix = new vector<contextSet>*[n + 1];	// Matrix is dynamically allocated 2D array
-	for (unsigned int i = 0; i <= n; ++i)
-		matrix[i] = new vector<contextSet>[n + 1];
-
-	// buildMatrix(w, G.vp0c, G.vp1c, G.vp2c, G.vplc, matrix, n);
-	// printMatrix(matrix, n);
-
-	// Is the top left cell the start symbol?
-	context c;	// i.e. empty context
-	//bool success = search(matrix[0][n], c) ? true : false;
-
-	for (unsigned int i = 0; i <= n; ++i)	// Delete the dynamically allocated array from memory
-		delete[] matrix[i];
-	delete[] matrix;
-
-	//string s;
-	//for (unsigned int i = 0; i < w.size(); i++)
-	//	s += w[i];
-	//historyC.add(s, success);
-
-	return true;
+bool accepts(const vector<string> &w, const CFG &G, History &history){
+	const auto chains = buildChains(G, buildNullable(G));
+	return accepts(w, G, chains, history);
 }
 
 ////////////////////////////////////////////////////////////////
@@ -300,20 +239,39 @@ void History::add(string s, bool b){
 // Checks the input samples for a grammar to make sure they're accepted
 void checkSamples(const CFG &G){
 	auto chains = buildChains(G, buildNullable(G));
-	for (unsigned int i = 0; i < G.samples.size(); i++){
-		bool accepted = accepts(G.samples[i], G, chains);
+	for (auto s : G.samples){
+		bool accepted = accepts(s, G, chains, historyG);
 		if (accepted){
 			cout << "Accepted by target grammar:";
-			for (unsigned int j = 0; j < G.samples[i].size(); j++)
-				cout << " " << G.samples[i][j];
+			for (unsigned int j = 0; j < s.size(); j++)
+				cout << " " << s[j];
 			cout << endl;
 		}
 		else{
 			cout << "Rejected by target grammar:";
-			for (unsigned int j = 0; j < G.samples[i].size(); j++)
-				cout << " " << G.samples[i][j];
+			for (unsigned int j = 0; j < s.size(); j++)
+				cout << " " << s[j];
 			cout << endl;
 			exit(1);
+		}
+	}
+}
+
+void checkLearner(const CFG &G, const vector<vector<string>> &samples){
+	auto chains = buildChains(G, buildNullable(G));
+	for (auto s : samples){
+		bool accepted = accepts(s, G, chains, historyH);
+		if (accepted){
+			cout << "Accepted by learner grammar:";
+			for (unsigned int j = 0; j < s.size(); j++)
+				cout << " " << s[j];
+			cout << endl;
+		}
+		else{
+			cout << "Rejected by learner grammar:";
+			for (unsigned int j = 0; j < s.size(); j++)
+				cout << " " << s[j];
+			cout << endl;
 		}
 	}
 }

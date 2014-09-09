@@ -145,7 +145,19 @@ CFG extractCFG(char* file){
 				G.vp0.push_back(p0);
 			}
 			else if (type == "P1"){
-
+				P1 p1;
+				string temp;
+				for (unsigned int i = 0; i < line.length(); i++){
+					if (isalpha(line[i]))
+						temp += line[i];
+					else if (line[i] == '-' && line[i + 1] == '>'){
+						p1.lhs = temp;
+						temp = "";
+						i++;
+					}
+					p1.rhs = temp;
+					G.vp1.push_back(p1);
+				}
 			}
 			else if (type == "P2"){
 				P2 p2;
@@ -236,8 +248,74 @@ CFG extractCFG(char* file){
 	}
 }
 
+// prints the current runtime
 void runtime(clock_t t0){
 	cout << "Current time: " << ((float)(clock() - t0) / CLOCKS_PER_SEC) << " seconds" << endl;
+}
+
+// Converts a CFG with contextual rules into a CFG with short strings
+CFG convertCFGC(const CFGC &H){
+	CFG Hprime;
+	unordered_map<contextSet, string> cmap;
+	Hprime.starts.emplace("0");
+	cmap[contextSet()] = "0";
+	unsigned elements = 1;
+
+	for (auto p0c : H.sp0c.set){ // For each P0C rule
+		auto csp = cmap.find(p0c.lhs); // csp = pointer to contextSet
+		if (csp == cmap.end()) // lhs has not been hashed yet
+			cmap.emplace(p0c.lhs, to_string(elements++)); // add it to cmap and increment elements
+		Hprime.vp0.push_back(P0(cmap[p0c.lhs])); // make a new p0 rule and add it to Hprime.vp0
+		// If lhs of rule contains empty context, add sentence rule
+		for (auto c : p0c.lhs.set){  // For each context in p0c.lhs
+			if (c.lhs.size() == 0 && c.rhs.size() == 0)
+				Hprime.vp0.push_back(P0("0"));
+		}
+	}
+	for (auto p1c : H.sp1c.set){
+		
+		auto lhscsp = cmap.find(p1c.lhs);
+		if (lhscsp == cmap.end())
+			cmap.emplace(p1c.lhs, to_string(elements++));
+		auto rhscsp = cmap.find(p1c.rhs);
+		if (rhscsp == cmap.end())
+			cmap.emplace(p1c.rhs, to_string(elements++));
+		Hprime.vp1.push_back(P1(cmap[p1c.lhs], cmap[p1c.rhs])); // make a new P1 rule and add it to Hprime.vp1
+		// If lhs of rule contains empty context, add sentence rule
+		for (auto c : p1c.lhs.set){  // For each context in p0c.lhs
+			if (c.lhs.size() == 0 && c.rhs.size() == 0)
+				Hprime.vp1.push_back(P1("0", cmap[p1c.rhs]));
+		}
+	}
+	for (auto p2c : H.sp2c.set){
+		auto lhscsp = cmap.find(p2c.lhs);
+		if (lhscsp == cmap.end())
+			cmap.emplace(p2c.lhs, to_string(elements++));
+		auto rhs1csp = cmap.find(p2c.rhs1);
+		if (rhs1csp == cmap.end())
+			cmap.emplace(p2c.rhs1, to_string(elements++));
+		auto rhs2csp = cmap.find(p2c.rhs2);
+		if (rhs2csp == cmap.end())
+			cmap.emplace(p2c.rhs2, to_string(elements++));
+		Hprime.vp2.push_back(P2(cmap[p2c.lhs], cmap[p2c.rhs1], cmap[p2c.rhs2]));
+		// If lhs of rule contains empty context, add sentence rule
+		for (auto c : p2c.lhs.set){  // For each context in p0c.lhs
+			if (c.lhs.size() == 0 && c.rhs.size() == 0)
+				Hprime.vp2.push_back(P2("0", cmap[p2c.rhs1], cmap[p2c.rhs2]));
+		}
+	}
+	for (auto plc : H.splc.set){
+		auto lhscsp = cmap.find(plc.lhs);
+		if (lhscsp == cmap.end())
+			cmap.emplace(plc.lhs, to_string(elements++));
+		Hprime.vpl.push_back(PL(cmap[plc.lhs], plc.rhs));
+		// If lhs of rule contains empty context, add sentence rule
+		for (auto c : plc.lhs.set){  // For each context in p0c.lhs
+			if (c.lhs.size() == 0 && c.rhs.size() == 0)
+				Hprime.vpl.push_back(PL("0", plc.rhs));
+		}
+	}
+	return Hprime;
 }
 
 ////////////////////////////////////////////////////////////////
@@ -426,4 +504,20 @@ void printCFG(const CFG &G){
 		cout << endl;
 	}
 	cout << endl;
+}
+
+// Print a CFGC
+void printCFGC(const CFGC &H){
+	printP0CSet(H.sp0c);
+	printP1CSet(H.sp1c);
+	printP2CSet(H.sp2c);
+	printPLCSet(H.splc);
+}
+
+// Print # of rules in CGFC
+void printCFGCRules(const CFGC &H){
+	cout << setw(4) << H.sp0c.set.size() << " P0C Rules" << endl;
+	cout << setw(4) << H.sp1c.set.size() << " P1C Rules" << endl;
+	cout << setw(4) << H.sp2c.set.size() << " P2C Rules" << endl;
+	cout << setw(4) << H.splc.set.size() << " PLC Rules" << endl;
 }

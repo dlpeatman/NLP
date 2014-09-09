@@ -15,15 +15,6 @@
 
 using namespace::std;
 
-unordered_map<string, bool> buildNullable(const CFG &G);
-unordered_map<string, unordered_set<string>> buildChains(const CFG &G, unordered_map<string, bool> nullable);
-
-bool accepts(const vector<string> w, const CFG &G);
-bool accepts(const vector<string> w, const CFG &G, unordered_map<string, unordered_set<string>> chain);
-
-// Overload for CFGCs
-bool accepts(const vector<string> w, const CFGC &G);
-
 // A class to record what calls have been made
 class History{
 public:
@@ -35,9 +26,17 @@ private:
 };
 
 // History classes for both CFG and CFGC oracles made to be accessed anywhere
-extern History history;
-extern History historyC;
+extern History historyG; // History for target grammar G
+extern History historyH; // History for learned grammar Hhat (aka Hprime)
+
+
+unordered_map<string, bool> buildNullable(const CFG &G);
+unordered_map<string, unordered_set<string>> buildChains(const CFG &G, unordered_map<string, bool> nullable);
+
+bool accepts(const vector<string> &w, const CFG &G, History &history);
+bool accepts(const vector<string> &w, const CFG &G, const unordered_map<string, unordered_set<string>> &chain, History &history);
 
 void checkSamples(const CFG &G);
+void checkLearner(const CFG &G, const vector<vector<string>> &samples);
 
 #endif
