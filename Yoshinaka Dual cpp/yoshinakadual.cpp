@@ -199,6 +199,8 @@ unordered_set<contextSet> powerSet(contextSet F, int f){
 CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 	const CFG &G, const unordered_set<string> &sigma, const int f)
 {
+	printContextSet(F.set);
+	// printD(K);
 	CFGC H;
 	unordered_set<contextSet> Vf = powerSet(F,f);
 	//for (auto cs : Vf)
@@ -217,15 +219,18 @@ CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 
 
 bool notInLhat(vector<vector<string>> D, CFG &Hprime){
+	//if (Hprime.vp0.size() + Hprime.vp1.size() + Hprime.vp2.size()
+	//	+ Hprime.vpl.size() == 0) // If Hprime is empty, just return true
+	//	return true;
 	for (auto s : D){
 		// printCFG(Hprime);
-		if (accepts(s, Hprime, historyH)){
+		if (!accepts(s, Hprime, historyH)){
 			cout << "Not in Lhat" << endl;
-			return false;
+			return true;
 		}
 	}
 	cout << "In Lhat" << endl;
-	return true;
+	return false;
 }
 
 // Main Algorithm function
@@ -256,13 +261,15 @@ CFGC fFCP(const CFG &target, const int f){
 		addSub(SubD, w);
 		// printSubstringVector(SubD);
 		K = SubD;
+		Hhat = Hf(F, K, target, sigma, f);
+		Hprime = convertCFGC(Hhat);
 		if (notInLhat(D, Hprime)){
 			for (auto c : ConD.set)
 				F.set.emplace(c);
+			Hhat = Hf(F, K, target, sigma, f);
+			Hprime = convertCFGC(Hhat);
 		}
-		Hhat = Hf(F, K, target, sigma, f);
 		// printCFGC(Hhat);
-		Hprime = convertCFGC(Hhat);
 		// printCFG(Hprime);
 	}
 	cout << "Done. Checking learner grammar..." << endl;
