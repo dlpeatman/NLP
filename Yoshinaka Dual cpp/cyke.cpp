@@ -1,7 +1,7 @@
 /****************************************************************
 * File: cyke.cpp
 * Implements ckye.h
-* David Peatman - Updated 8/30/14
+* David Peatman - Updated 9/23/14
 ****************************************************************/
 #include <iomanip>
 #include <iostream>
@@ -11,7 +11,6 @@
 #include "cyke.h"
 
 History historyG;
-History historyH;
 
 // Prints the CFG Matrix for debugging purposes
 void printMatrix(unordered_set<string>** matrix, unsigned int size){
@@ -257,10 +256,10 @@ void checkSamples(const CFG &G){
 	}
 }
 
-void checkLearner(const CFG &G, const vector<vector<string>> &samples){
+void checkLearner(const CFG &G, History h, const vector<vector<string>> &samples){
 	auto chains = buildChains(G, buildNullable(G));
 	for (auto s : samples){
-		bool accepted = accepts(s, G, chains, historyH);
+		bool accepted = accepts(s, G, chains, h);
 		if (accepted){
 			cout << "Accepted by learner grammar:";
 			for (unsigned int j = 0; j < s.size(); j++)

@@ -1,7 +1,7 @@
 /****************************************************************
  * File: yoshinakadual.cpp
  * Implementation of the dual method of Yoshinaka'11, Algorithm 2
- * David Peatman - Updated 9/04/14
+ * David Peatman - Updated 9/23/14
  ****************************************************************
  * Compile this file and run with properly formatted CFG file as
  * command line argument
@@ -199,7 +199,7 @@ unordered_set<contextSet> powerSet(contextSet F, int f){
 CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 	const CFG &G, const unordered_set<string> &sigma, const int f)
 {
-	printContextSet(F.set);
+	// printContextSet(F.set);
 	// printD(K);
 	CFGC H;
 	unordered_set<contextSet> Vf = powerSet(F,f);
@@ -218,13 +218,13 @@ CFGC Hf(const contextSet &F, const vector<vector<string>> &K,
 }
 
 
-bool notInLhat(vector<vector<string>> D, CFG &Hprime){
+bool notInLhat(vector<vector<string>> D, CFG &Hprime, History &history){
 	//if (Hprime.vp0.size() + Hprime.vp1.size() + Hprime.vp2.size()
 	//	+ Hprime.vpl.size() == 0) // If Hprime is empty, just return true
 	//	return true;
 	for (auto s : D){
 		// printCFG(Hprime);
-		if (!accepts(s, Hprime, historyH)){
+		if (!accepts(s, Hprime, history)){
 			cout << "Not in Lhat" << endl;
 			return true;
 		}
@@ -263,18 +263,21 @@ CFGC fFCP(const CFG &target, const int f){
 		K = SubD;
 		Hhat = Hf(F, K, target, sigma, f);
 		Hprime = convertCFGC(Hhat);
-		if (notInLhat(D, Hprime)){
+		History h;
+		if (notInLhat(D, Hprime, h)){
 			for (auto c : ConD.set)
 				F.set.emplace(c);
 			Hhat = Hf(F, K, target, sigma, f);
 			Hprime = convertCFGC(Hhat);
 		}
+
 		// printCFGC(Hhat);
 		// printCFG(Hprime);
 	}
-	cout << "Done. Checking learner grammar..." << endl;
+	cout << endl << "Done. Checking learner grammar..." << endl;
 	runtime(t0);
-	checkLearner(Hprime, target.samples);
+	History h;
+	checkLearner(Hprime, h, target.samples);
 	runtime(t0);
 
 	return Hhat;

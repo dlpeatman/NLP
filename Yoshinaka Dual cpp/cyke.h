@@ -1,7 +1,7 @@
 /****************************************************************
  * File: cyke.h
  * Call CYK algorithm for both CFGs and contectual CFGs
- * David Peatman - Updated 9/03/14
+ * David Peatman - Updated 9/23/14
  ****************************************************************/
 #ifndef _CYK_
 #define _CYK_
@@ -25,9 +25,8 @@ private:
 	unordered_map<string, bool> map;
 };
 
-// History classes for both CFG and CFGC oracles made to be accessed anywhere
+// History classes for CFG to be accessed anywhere (CFGC histories are instantiated in each CFGC)
 extern History historyG; // History for target grammar G
-extern History historyH; // History for learned grammar Hhat (aka Hprime)
 
 
 unordered_map<string, bool> buildNullable(const CFG &G);
@@ -37,6 +36,6 @@ bool accepts(const vector<string> &w, const CFG &G, History &history);
 bool accepts(const vector<string> &w, const CFG &G, const unordered_map<string, unordered_set<string>> &chain, History &history);
 
 void checkSamples(const CFG &G);
-void checkLearner(const CFG &G, const vector<vector<string>> &samples);
+void checkLearner(const CFG &G, History h, const vector<vector<string>> &samples);
 
 #endif

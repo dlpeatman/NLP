@@ -1,7 +1,7 @@
 /****************************************************************
 * File: types.cpp
 * Implementation for types.h
-* David Peatman - Updated 9/04/14
+* David Peatman - Updated 9/23/14
 ****************************************************************/
 #include "types.h"
 
@@ -328,15 +328,13 @@ void printContext(const context &c){
 	for (unsigned int i = 0; i < c.lhs.size(); i++){
 		cout << c.lhs[i];
 		if (i < c.lhs.size() - 1)
-			cout << ",";
+			cout << " ";
 	}
-	cout << ")";
-	cout << ",";
-	cout << "(";
+	cout << ", ";
 	for (unsigned int i = 0; i < c.rhs.size(); i++){
 		cout << c.rhs[i];
 		if (i < c.rhs.size() - 1)
-			cout << ",";
+			cout << " ";
 	}
 	cout << ")";
 }
